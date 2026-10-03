@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context-Aware Secret Leakage Security Scan</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --safe: #10b981;
+            --low: #3b82f6;
+            --med: #f59e0b;
+            --high: #f97316;
+            --crit: #ef4444;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            margin: 0;
+            padding: 24px;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: #ffffff;
+            padding: 28px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 { margin: 0 0 8px 0; font-size: 1.8rem; font-weight: 700; }
+        .header p { margin: 0; color: #94a3b8; font-size: 1rem; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-top: 4px solid #cbd5e1;
+            text-align: center;
+        }
+        .stat-card .val { font-size: 1.8rem; font-weight: bold; margin: 4px 0; }
+        .stat-card .lbl { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+        th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        tr:hover { background-color: #f8fafc; }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
+            border-radius: 9999px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ Context-Aware Secret Leakage Security Report</h1>
+        <p>Novelty: Evaluates secret exposure severity via IaC (Terraform / CloudFormation), AWS Resources & CI/CD contexts.</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card" style="border-top-color: #64748b;">
+            <div class="lbl">Total Files</div>
+            <div class="val" style="color: #1e293b;">7</div>
+        </div>
+        <div class="stat-card" style="border-top-color: #ef4444;">
+            <div class="lbl">Critical</div>
+            <div class="val" style="color: #ef4444;">3</div>
+        </div>
+        <div class="stat-card" style="border-top-color: #f97316;">
+            <div class="lbl">High</div>
+            <div class="val" style="color: #f97316;">0</div>
+        </div>
+        <div class="stat-card" style="border-top-color: #f59e0b;">
+            <div class="lbl">Medium</div>
+            <div class="val" style="color: #f59e0b;">0</div>
+        </div>
+        <div class="stat-card" style="border-top-color: #3b82f6;">
+            <div class="lbl">Low</div>
+            <div class="val" style="color: #3b82f6;">0</div>
+        </div>
+        <div class="stat-card" style="border-top-color: #10b981;">
+            <div class="lbl">Safe</div>
+            <div class="val" style="color: #10b981;">4</div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>File Path</th>
+                <th>Risk Level</th>
+                <th>Type / IaC</th>
+                <th>AWS Resources</th>
+                <th>CI/CD</th>
+                <th>Secrets</th>
+                <th>Explainable Breakdown & Rationale</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+        <tr>
+            <td><strong>C:\Study\404\my\tests\fixtures\clean\app.py</strong></td>
+            <td><span class="badge" style="background-color: #10b981">SAFE (0)</span></td>
+            <td>python </td>
+            <td>None</td>
+            <td>No</td>
+            <td>None</td>
+            <td>
+                <p style="margin: 0 0 6px 0; font-size: 0.9em;"><em>No secrets detected.</em></p>
+                <ul style="margin: 0; padding-left: 18px; font-size: 0.85em; color: #475569;">
+                    <li><span style='color:#10b981'>0</span> No secrets detected</li>
+                </ul>
+            </td>
+        </tr>
+        
+        <tr>
+            <td><strong>C:\Study\404\my\tests\fixtures\clean\main.tf</strong></td>
+            <td><span class="badge" style="background-color: #10b981">SAFE (0)</span></td>
+            <td>terraform (terraform)</td>
+            <td>aws_s3_bucket</td>
+            <td>No</td>
+            <td>None</td>
+            <td>
+                <p style="margin: 0 0 6px 0; font-size: 0.9em;"><em>No secrets detected.</em></p>
+                <ul style="margin: 0; padding-left: 18px; font-size: 0.85em; color: #475569;">
+                    <li><span style='color:#10b981'>0</span> No secrets detected</li>
+                </ul>
+            </td>
+        </tr>
+        
+        <tr>
+            <td><strong>C:\Study\404\my\tests\fixtures\cloudformation\database.yaml</strong></td>
+            <td><span class="badge" style="background-color: #ef4444">CRITICAL (95)</span></td>
+            <td>cloudformation (cloudformation)</td>
+            <td>AWS::RDS::DBInstance</td>
+            <td>No</td>
+            <td>password</td>
+            <td>
+                <p style="margin: 0 0 6px 0; font-size: 0.9em;"><em>CRITICAL: password detected inside Cloudformation IaC, near AWS resource(s) AWS::RDS::DBInstance, targeting AWS.</em></p>
+                <ul style="margin: 0; padding-left: 18px; font-size: 0.85em; color: #475569;">
+                    <li><span style='color:#ef4444'>+40</span> Secret type(s) detected: password</li><li><span style='color:#ef4444'>+15</span> High entropy (4.21) suggests a real secret</li><li><span style='color:#ef4444'>+10</span> File is CloudFormation Infrastructure-as-Code</li><li><span style='color:#ef4444'>+10</span> AWS resource(s): AWS::RDS::DBInstance</li><li><span style='color:#ef4444'>+5</span> Sensitive resource(s): AWS::RDS::DBInstance</li><li><span style='color:#ef4444'>+15</span> File path references production/deployment context</li>
+                </ul>
+            </td>
+        </tr>
+        
+        <tr>
+            <td><strong>C:\Study\404\my\tests\fixtures\docs\README.md</strong></td>
+            <td><span class="badge" style="background-color: #10b981">SAFE (0)</span></td>
+            <td>unknown </td>
+            <td>None</td>
+            <td>No</td>
+            <td>aws_access_key, api_key, password</td>
+            <td>
+                <p style="margin: 0 0 6px 0; font-size: 0.9em;"><em>No real secrets detected.</em></p>
+                <ul style="margin: 0; padding-left: 18px; font-size: 0.85em; color: #475569;">
+                    <li><span style='color:#10b981'>-30</span> Only placeholder/example values detected</li><li><span style='color:#10b981'>-20</span> File path indicates test/example/documentation context</li>
+                </ul>
+            </td>
+        </tr>
+        
+        <tr>
+            <td><strong>C:\Study\404\my\tests\fixtures\github_actions\deploy.yml</strong></td>
+            <td><span class="badge" style="background-color: #ef4444">CRITICAL (95)</span></td>
+            <td>yaml </td>
+            <td>None</td>
+            <td>Yes (github_actions)</td>
+            <td>aws_access_key, aws_secret_key</td>
+            <td>
+                <p style="margin: 0 0 6px 0; font-size: 0.9em;"><em>CRITICAL: aws_access_key, aws_secret_key within a github_actions CI/CD pipeline, targeting AWS.</em></p>
+                <ul style="margin: 0; padding-left: 18px; font-size: 0.85em; color: #475569;">
+                    <li><span style='color:#ef4444'>+40</span> Secret type(s) detected: aws_access_key, aws_secret_key</li><li><span style='color:#ef4444'>+15</span> High entropy (4.95) suggests a real secret</li><li><span style='color:#ef4444'>+20</span> File is part of a CI/CD pipeline (github_actions)</li><li><span style='color:#ef4444'>+15</span> File path references production/deployment context</li><li><span style='color:#ef4444'>+5</span> AWS credential detected - higher severity</li>
+                </ul>
+            </td>
+        </tr>
+        
+        <tr>
+            <td><strong>C:\Study\404\my\tests\fixtures\github_actions\secure_ci.yml</strong></td>
+            <td><span class="badge" style="background-color: #10b981">SAFE (0)</span></td>
+            <td>yaml </td>
+            <td>None</td>
+            <td>Yes (github_actions)</td>
+            <td>None</td>
+            <td>
+                <p style="margin: 0 0 6px 0; font-size: 0.9em;"><em>No secrets detected.</em></p>
+                <ul style="margin: 0; padding-left: 18px; font-size: 0.85em; color: #475569;">
+                    <li><span style='color:#10b981'>0</span> No secrets detected</li>
+                </ul>
+            </td>
+        </tr>
+        
+        <tr>
+            <td><strong>C:\Study\404\my\tests\fixtures\terraform\deploy.tf</strong></td>
+            <td><span class="badge" style="background-color: #ef4444">CRITICAL (100)</span></td>
+            <td>terraform (terraform)</td>
+            <td>aws_instance, aws_iam_role</td>
+            <td>No</td>
+            <td>aws_access_key</td>
+            <td>
+                <p style="margin: 0 0 6px 0; font-size: 0.9em;"><em>CRITICAL: aws_access_key detected inside Terraform IaC, near AWS resource(s) aws_instance, aws_iam_role, targeting AWS.</em></p>
+                <ul style="margin: 0; padding-left: 18px; font-size: 0.85em; color: #475569;">
+                    <li><span style='color:#ef4444'>+40</span> Secret type(s) detected: aws_access_key</li><li><span style='color:#ef4444'>+15</span> High entropy (3.88) suggests a real secret</li><li><span style='color:#ef4444'>+10</span> File is Terraform Infrastructure-as-Code</li><li><span style='color:#ef4444'>+10</span> AWS resource(s): aws_instance, aws_iam_role</li><li><span style='color:#ef4444'>+5</span> Sensitive resource(s): aws_iam_role</li><li><span style='color:#ef4444'>+15</span> File path references production/deployment context</li><li><span style='color:#ef4444'>+5</span> AWS credential detected - higher severity</li>
+                </ul>
+            </td>
+        </tr>
+        
+        </tbody>
+    </table>
+</body>
+</html>

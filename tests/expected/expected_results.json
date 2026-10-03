@@ -1,0 +1,45 @@
+[
+  {
+    "file": "tests/fixtures/clean/main.tf",
+    "expected_risk_level": "SAFE",
+    "expected_iac": "terraform",
+    "should_have_secrets": false
+  },
+  {
+    "file": "tests/fixtures/clean/app.py",
+    "expected_risk_level": "SAFE",
+    "expected_iac": "none",
+    "should_have_secrets": false
+  },
+  {
+    "file": "tests/fixtures/terraform/deploy.tf",
+    "expected_risk_level": "CRITICAL",
+    "expected_iac": "terraform",
+    "expected_resources": ["aws_instance", "aws_iam_role"],
+    "should_have_secrets": true
+  },
+  {
+    "file": "tests/fixtures/cloudformation/database.yaml",
+    "expected_risk_level": "CRITICAL",
+    "expected_iac": "cloudformation",
+    "expected_resources": ["AWS::RDS::DBInstance"],
+    "should_have_secrets": true
+  },
+  {
+    "file": "tests/fixtures/github_actions/deploy.yml",
+    "expected_risk_level": "CRITICAL",
+    "expected_cicd": true,
+    "should_have_secrets": true
+  },
+  {
+    "file": "tests/fixtures/github_actions/secure_ci.yml",
+    "expected_risk_level": "SAFE",
+    "expected_cicd": true,
+    "should_have_secrets": false
+  },
+  {
+    "file": "tests/fixtures/docs/README.md",
+    "expected_risk_level": "SAFE",
+    "should_have_secrets": false
+  }
+]

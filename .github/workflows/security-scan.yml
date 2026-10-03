@@ -1,0 +1,45 @@
+name: Context-Aware Secret Leakage Security Scan
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  secret-scan:
+    name: Context-Aware IaC & Secret Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Automated Test Suite
+        run: |
+          python tests/test_all.py
+
+      - name: Run Context-Aware Scanner
+        id: scan
+        run: |
+          # Fails if CRITICAL or HIGH secrets are detected in IaC or CI/CD
+          python scanner/cli.py ./ --json reports/scan_report.json --html reports/scan_report.html --fail-on HIGH
+
+      - name: Upload Security Scan Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-report
+          path: |
+            reports/scan_report.json
+            reports/scan_report.html

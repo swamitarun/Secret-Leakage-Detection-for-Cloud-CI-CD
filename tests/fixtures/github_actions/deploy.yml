@@ -1,0 +1,17 @@
+name: Production Cloud Deployment
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      # Severe: Hardcoded synthetic AWS credentials in CI/CD pipeline
+      AWS_ACCESS_KEY_ID: "AKIA9876543210AWSKEY"
+      AWS_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYsynthetic99"
+      DEPLOY_ENV: "production"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Cloud
+        run: ./scripts/deploy_infra.sh

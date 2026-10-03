@@ -1,0 +1,293 @@
+{
+  "target": "C:\\Study\\404\\my\\tests\\fixtures",
+  "total_files": 7,
+  "summary": {
+    "SAFE": 4,
+    "LOW": 0,
+    "MEDIUM": 0,
+    "HIGH": 0,
+    "CRITICAL": 3
+  },
+  "assessments": [
+    {
+      "file": "C:\\Study\\404\\my\\tests\\fixtures\\clean\\app.py",
+      "file_type": "python",
+      "iac_type": "none",
+      "cloud_provider": "none",
+      "aws_resources": [],
+      "ci_cd_context": false,
+      "ci_cd_platform": "none",
+      "risk_score": 0,
+      "risk_level": "SAFE",
+      "explanation": "No secrets detected.",
+      "findings": [],
+      "factors": [
+        {
+          "name": "no_secret",
+          "points": 0,
+          "description": "No secrets detected"
+        }
+      ]
+    },
+    {
+      "file": "C:\\Study\\404\\my\\tests\\fixtures\\clean\\main.tf",
+      "file_type": "terraform",
+      "iac_type": "terraform",
+      "cloud_provider": "aws",
+      "aws_resources": [
+        "aws_s3_bucket"
+      ],
+      "ci_cd_context": false,
+      "ci_cd_platform": "none",
+      "risk_score": 0,
+      "risk_level": "SAFE",
+      "explanation": "No secrets detected.",
+      "findings": [],
+      "factors": [
+        {
+          "name": "no_secret",
+          "points": 0,
+          "description": "No secrets detected"
+        }
+      ]
+    },
+    {
+      "file": "C:\\Study\\404\\my\\tests\\fixtures\\cloudformation\\database.yaml",
+      "file_type": "cloudformation",
+      "iac_type": "cloudformation",
+      "cloud_provider": "aws",
+      "aws_resources": [
+        "AWS::RDS::DBInstance"
+      ],
+      "ci_cd_context": false,
+      "ci_cd_platform": "none",
+      "risk_score": 95,
+      "risk_level": "CRITICAL",
+      "explanation": "CRITICAL: password detected inside Cloudformation IaC, near AWS resource(s) AWS::RDS::DBInstance, targeting AWS.",
+      "findings": [
+        {
+          "secret_type": "password",
+          "line": 12,
+          "entropy": 4.2084,
+          "confidence": 0.8,
+          "is_placeholder": false
+        }
+      ],
+      "factors": [
+        {
+          "name": "secret_detected",
+          "points": 40,
+          "description": "Secret type(s) detected: password"
+        },
+        {
+          "name": "high_entropy",
+          "points": 15,
+          "description": "High entropy (4.21) suggests a real secret"
+        },
+        {
+          "name": "cloudformation_context",
+          "points": 10,
+          "description": "File is CloudFormation Infrastructure-as-Code"
+        },
+        {
+          "name": "aws_resource_detected",
+          "points": 10,
+          "description": "AWS resource(s): AWS::RDS::DBInstance"
+        },
+        {
+          "name": "sensitive_aws_resource",
+          "points": 5,
+          "description": "Sensitive resource(s): AWS::RDS::DBInstance"
+        },
+        {
+          "name": "production_context",
+          "points": 15,
+          "description": "File path references production/deployment context"
+        }
+      ]
+    },
+    {
+      "file": "C:\\Study\\404\\my\\tests\\fixtures\\docs\\README.md",
+      "file_type": "unknown",
+      "iac_type": "none",
+      "cloud_provider": "aws",
+      "aws_resources": [],
+      "ci_cd_context": false,
+      "ci_cd_platform": "none",
+      "risk_score": 0,
+      "risk_level": "SAFE",
+      "explanation": "No real secrets detected.",
+      "findings": [
+        {
+          "secret_type": "aws_access_key",
+          "line": 6,
+          "entropy": 3.6842,
+          "confidence": 0.19,
+          "is_placeholder": true
+        },
+        {
+          "secret_type": "api_key",
+          "line": 7,
+          "entropy": 3.2928,
+          "confidence": 0.15,
+          "is_placeholder": true
+        },
+        {
+          "secret_type": "password",
+          "line": 8,
+          "entropy": 3.2389,
+          "confidence": 0.16,
+          "is_placeholder": true
+        }
+      ],
+      "factors": [
+        {
+          "name": "placeholder_only",
+          "points": -30,
+          "description": "Only placeholder/example values detected"
+        },
+        {
+          "name": "test_example_file",
+          "points": -20,
+          "description": "File path indicates test/example/documentation context"
+        }
+      ]
+    },
+    {
+      "file": "C:\\Study\\404\\my\\tests\\fixtures\\github_actions\\deploy.yml",
+      "file_type": "yaml",
+      "iac_type": "none",
+      "cloud_provider": "aws",
+      "aws_resources": [],
+      "ci_cd_context": true,
+      "ci_cd_platform": "github_actions",
+      "risk_score": 95,
+      "risk_level": "CRITICAL",
+      "explanation": "CRITICAL: aws_access_key, aws_secret_key within a github_actions CI/CD pipeline, targeting AWS.",
+      "findings": [
+        {
+          "secret_type": "aws_access_key",
+          "line": 11,
+          "entropy": 3.9842,
+          "confidence": 0.95,
+          "is_placeholder": false
+        },
+        {
+          "secret_type": "aws_secret_key",
+          "line": 12,
+          "entropy": 4.9531,
+          "confidence": 0.9,
+          "is_placeholder": false
+        }
+      ],
+      "factors": [
+        {
+          "name": "secret_detected",
+          "points": 40,
+          "description": "Secret type(s) detected: aws_access_key, aws_secret_key"
+        },
+        {
+          "name": "high_entropy",
+          "points": 15,
+          "description": "High entropy (4.95) suggests a real secret"
+        },
+        {
+          "name": "cicd_context",
+          "points": 20,
+          "description": "File is part of a CI/CD pipeline (github_actions)"
+        },
+        {
+          "name": "production_context",
+          "points": 15,
+          "description": "File path references production/deployment context"
+        },
+        {
+          "name": "aws_credential_type",
+          "points": 5,
+          "description": "AWS credential detected - higher severity"
+        }
+      ]
+    },
+    {
+      "file": "C:\\Study\\404\\my\\tests\\fixtures\\github_actions\\secure_ci.yml",
+      "file_type": "yaml",
+      "iac_type": "none",
+      "cloud_provider": "aws",
+      "aws_resources": [],
+      "ci_cd_context": true,
+      "ci_cd_platform": "github_actions",
+      "risk_score": 0,
+      "risk_level": "SAFE",
+      "explanation": "No secrets detected.",
+      "findings": [],
+      "factors": [
+        {
+          "name": "no_secret",
+          "points": 0,
+          "description": "No secrets detected"
+        }
+      ]
+    },
+    {
+      "file": "C:\\Study\\404\\my\\tests\\fixtures\\terraform\\deploy.tf",
+      "file_type": "terraform",
+      "iac_type": "terraform",
+      "cloud_provider": "aws",
+      "aws_resources": [
+        "aws_instance",
+        "aws_iam_role"
+      ],
+      "ci_cd_context": false,
+      "ci_cd_platform": "none",
+      "risk_score": 100,
+      "risk_level": "CRITICAL",
+      "explanation": "CRITICAL: aws_access_key detected inside Terraform IaC, near AWS resource(s) aws_instance, aws_iam_role, targeting AWS.",
+      "findings": [
+        {
+          "secret_type": "aws_access_key",
+          "line": 11,
+          "entropy": 3.8842,
+          "confidence": 0.95,
+          "is_placeholder": false
+        }
+      ],
+      "factors": [
+        {
+          "name": "secret_detected",
+          "points": 40,
+          "description": "Secret type(s) detected: aws_access_key"
+        },
+        {
+          "name": "high_entropy",
+          "points": 15,
+          "description": "High entropy (3.88) suggests a real secret"
+        },
+        {
+          "name": "terraform_context",
+          "points": 10,
+          "description": "File is Terraform Infrastructure-as-Code"
+        },
+        {
+          "name": "aws_resource_detected",
+          "points": 10,
+          "description": "AWS resource(s): aws_instance, aws_iam_role"
+        },
+        {
+          "name": "sensitive_aws_resource",
+          "points": 5,
+          "description": "Sensitive resource(s): aws_iam_role"
+        },
+        {
+          "name": "production_context",
+          "points": 15,
+          "description": "File path references production/deployment context"
+        },
+        {
+          "name": "aws_credential_type",
+          "points": 5,
+          "description": "AWS credential detected - higher severity"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation Deployment Template with Secret Exposure
+
+Resources:
+  MyDatabase:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: db.t3.micro
+      AllocatedStorage: '20'
+      Engine: mysql
+      MasterUsername: admin
+      MasterUserPassword: "MyPr0d#Db99Secr3tP@ssw0rd!X"
+      Tags:
+        - Key: Environment
+          Value: production

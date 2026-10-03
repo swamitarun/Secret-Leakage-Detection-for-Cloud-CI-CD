@@ -1,0 +1,102 @@
+# =============================================================================
+# Context-Aware Secret Leakage Detection — Risk Scoring Configuration
+# =============================================================================
+#
+# This file defines all weights used by the deterministic risk engine.
+# Adjust these values to tune the scanner's sensitivity.
+#
+# Risk score is additive (0–100).  The level mapping is:
+#   0–19   SAFE
+#  20–39   LOW
+#  40–59   MEDIUM
+#  60–79   HIGH
+#  80–100  CRITICAL
+
+# ── Score thresholds ─────────────────────────────────────────────────────────
+thresholds:
+  safe_max: 19
+  low_max: 39
+  medium_max: 59
+  high_max: 79
+  # 80+ → CRITICAL
+
+# ── Positive factors (increase risk) ────────────────────────────────────────
+factors:
+  secret_detected: 40           # Base score when any real secret is found
+  high_entropy: 15              # Entropy of matched value > 4.0
+  terraform_context: 10         # File is a Terraform template
+  cloudformation_context: 10    # File is a CloudFormation template
+  aws_resource_detected: 10     # An AWS resource type was extracted
+  sensitive_aws_resource: 5     # Resource is IAM / KMS / Secrets Manager etc.
+  cicd_context: 20              # File is part of a CI/CD pipeline
+  production_context: 15        # File/path references production / deploy
+  aws_credential_type: 5        # Secret is specifically an AWS key
+
+# ── Negative factors (decrease risk / false-positive reduction) ─────────────
+reductions:
+  placeholder_value: -30        # Value matches placeholder patterns
+  test_example_file: -20        # File path contains test / example / docs
+  low_entropy: -10              # Entropy of matched value < 2.5
+  low_confidence: -5            # Pattern match confidence < 0.5
+
+# ── File-path keywords that indicate test/example context ───────────────────
+test_path_keywords:
+  - test
+  - tests
+  - example
+  - examples
+  - sample
+  - samples
+  - fixture
+  - fixtures
+  - mock
+  - dummy
+  - docs
+  - documentation
+  - readme
+  - template
+  - demo
+
+# ── File-path keywords that indicate production / deployment ────────────────
+production_path_keywords:
+  - prod
+  - production
+  - deploy
+  - deployment
+  - release
+  - staging
+  - live
+  - infra
+  - infrastructure
+  - database
+  - db
+
+# ── Sensitive AWS resource types ────────────────────────────────────────────
+sensitive_aws_resources:
+  # Terraform
+  - aws_iam_role
+  - aws_iam_user
+  - aws_iam_policy
+  - aws_iam_access_key
+  - aws_lambda_function
+  - aws_db_instance
+  - aws_secretsmanager_secret
+  - aws_kms_key
+  - aws_ecs_task_definition
+  - aws_eks_cluster
+  # CloudFormation
+  - "AWS::IAM::Role"
+  - "AWS::IAM::User"
+  - "AWS::Lambda::Function"
+  - "AWS::RDS::DBInstance"
+  - "AWS::SecretsManager::Secret"
+  - "AWS::KMS::Key"
+  - "AWS::ECS::TaskDefinition"
+  - "AWS::EKS::Cluster"
+
+# ── CI/CD failure threshold ────────────────────────────────────────────────
+ci:
+  fail_on_high: true            # Fail CI if any HIGH finding
+  fail_on_critical: true        # Fail CI if any CRITICAL finding
+  max_high_allowed: 0           # Max HIGH findings before failure
+  max_critical_allowed: 0       # Max CRITICAL findings before failure
