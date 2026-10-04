@@ -1,0 +1,43 @@
+# Python environment
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Deep Learning Checkpoints & Weights
+checkpoints/
+ml/checkpoints/
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# Datasets (downloaded & raw corpora)
+dataset/prowl/
+dataset/raw/
+dataset/cache/
+dataset/downloaded/
+*.tar.gz
+*.zip
+
+# Generated Reports & Logs
+reports/*.json
+reports/*.html
+!reports/.gitkeep
+*.log
+
+# Sensitive local config
+.env
+.env.*
+secrets.yaml
+*.pem
+*.key
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,6 @@
+# Install this after requirements.txt when training or using --transformer.
+torch>=2.1.0
+transformers>=4.46.3,<5.0.0
+datasets>=2.14.0
+fsspec<=2026.6.0
+tabulate>=0.9.0

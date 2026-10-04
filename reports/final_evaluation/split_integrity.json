@@ -1,0 +1,12 @@
+{
+  "dataset": "Podric/prowl-secrets-corpus",
+  "config": "corpus",
+  "train_samples": 15000,
+  "validation_samples": 4000,
+  "test_samples": 4000,
+  "hash_method": "sha256(text.strip())",
+  "train_validation_overlap": 0,
+  "train_test_overlap": 0,
+  "validation_test_overlap": 0,
+  "status": "verified"
+}

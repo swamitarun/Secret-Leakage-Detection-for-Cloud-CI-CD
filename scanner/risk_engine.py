@@ -59,6 +59,10 @@ class RiskAssessment:
     risk_score: int             # 0–100
     factors: list[RiskFactor]   # transparent breakdown
     explanation: str            # one-line summary
+    transformer_available: bool = False
+    transformer_probability: float = 0.0
+    transformer_confidence: float = 0.0
+    hybrid_decision: str = "rules_only"
 
 
 def _score_to_level(score: int, cfg: dict) -> str:
@@ -383,6 +387,12 @@ def to_json_dict(assessment: RiskAssessment) -> dict:
         "risk_score": assessment.risk_score,
         "risk_level": assessment.risk_level,
         "explanation": assessment.explanation,
+        "transformer": {
+            "available": assessment.transformer_available,
+            "secret_probability": assessment.transformer_probability,
+            "confidence": assessment.transformer_confidence,
+            "hybrid_decision": assessment.hybrid_decision,
+        },
         "findings": [
             {
                 "secret_type": f.secret_type,

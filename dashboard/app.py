@@ -11,6 +11,8 @@ Visualizes:
 
 import os
 import sys
+import json
+import tempfile
 from pathlib import Path
 import pandas as pd
 import streamlit as st
@@ -23,6 +25,8 @@ from scanner.cli import scan_directory, discover_files
 from scanner.scanner import scan_file, redact
 from scanner.iac_analyzer import analyze_file
 from scanner.risk_engine import assess_risk, to_json_dict
+from scanner.archive import ArchiveSecurityError, cleanup_extracted, extract_zip
+from scanner.cli import generate_html_report
 
 # Page Config
 st.set_page_config(
@@ -65,7 +69,13 @@ st.sidebar.title("🛡️ Scanner Control")
 st.sidebar.markdown("---")
 
 default_scan_dir = str(PROJECT_ROOT / "tests" / "fixtures")
-target_path_input = st.sidebar.text_input("Target Directory or File to Scan", value=default_scan_dir)
+scan_mode = st.sidebar.radio("Scan source", ["ZIP upload", "Local path"], index=0)
+uploaded_zip = None
+target_path_input = ""
+if scan_mode == "ZIP upload":
+    uploaded_zip = st.sidebar.file_uploader("Upload project ZIP", type=["zip"])
+else:
+    target_path_input = st.sidebar.text_input("Target Directory or File to Scan", value=default_scan_dir)
 
 risk_filter = st.sidebar.multiselect(
     "Filter by Risk Level",
@@ -74,14 +84,55 @@ risk_filter = st.sidebar.multiselect(
 )
 
 scan_btn = st.sidebar.button("🚀 Run Security Scan", use_container_width=True)
+use_transformer = st.sidebar.checkbox("Use trained transformer when available", value=False)
+model_path_input = st.sidebar.text_input(
+    "Transformer checkpoint",
+    value=str(PROJECT_ROOT / "reports" / "transformer_secret_detector.pt"),
+)
+gpu_id_input = st.sidebar.number_input("GPU ID", min_value=0, value=0, step=1)
 
 # Header
 st.markdown('<div class="main-header">🛡️ Context-Aware Secret Leakage Detection</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Novel Security Scanner: Enriches regex matching with IaC (Terraform / CloudFormation), AWS Resource Intelligence, and CI/CD Context.</div>', unsafe_allow_html=True)
 
 # Perform Scan
-if target_path_input and os.path.exists(target_path_input):
-    assessments = scan_directory(target_path_input)
+scan_root = None
+scan_stats = None
+owns_scan_root = False
+if scan_mode == "ZIP upload" and uploaded_zip is not None and scan_btn:
+    try:
+        scan_root, scan_stats, owns_scan_root = extract_zip(uploaded_zip)
+        if scan_stats.files_extracted == 0:
+            st.warning("The ZIP contains no supported source files to scan.")
+        with st.spinner("Scanning uploaded project..."):
+            assessments = scan_directory(
+                str(scan_root),
+                transformer=use_transformer,
+                model_path=model_path_input if use_transformer else None,
+                gpu_id=int(gpu_id_input) if use_transformer else None,
+            )
+    except ArchiveSecurityError as exc:
+        st.error(f"ZIP rejected: {exc}")
+        assessments = []
+    finally:
+        if owns_scan_root and scan_root is not None:
+            cleanup_extracted(scan_root)
+elif scan_mode == "Local path" and target_path_input and os.path.exists(target_path_input):
+    assessments = scan_directory(
+        target_path_input,
+        transformer=use_transformer,
+        model_path=model_path_input if use_transformer else None,
+        gpu_id=int(gpu_id_input) if use_transformer else None,
+    )
+else:
+    assessments = None
+
+if assessments is not None:
+    if scan_stats:
+        st.success(
+            f"Scanned {scan_stats.files_extracted} supported files "
+            f"({scan_stats.bytes_extracted / 1024 / 1024:.2f} MB extracted)."
+        )
     
     # Filter
     filtered_assessments = [a for a in assessments if a.risk_level in risk_filter]
@@ -105,11 +156,12 @@ if target_path_input and os.path.exists(target_path_input):
     st.markdown("---")
     
     # Visual Analytics Tabs
-    tab_overview, tab_findings, tab_iac, tab_explain = st.tabs([
+    tab_overview, tab_findings, tab_iac, tab_explain, tab_transformer = st.tabs([
         "📊 Risk & Context Distribution",
         "🔍 Detailed Findings",
         "🏗️ IaC & AWS Resources",
-        "🧠 Explainability Engine"
+        "🧠 Explainability Engine",
+        "🤖 Transformer Evidence"
     ])
     
     with tab_overview:
@@ -145,6 +197,8 @@ if target_path_input and os.path.exists(target_path_input):
                 "AWS Resources": ", ".join(a.aws_resources) if a.aws_resources else "None",
                 "CI/CD Context": "Yes (" + a.ci_cd_platform + ")" if a.ci_cd_context else "No",
                 "Secrets Detected": len([f for f in a.findings if not f.is_placeholder]),
+                "Model Probability": a.transformer_probability if a.transformer_available else None,
+                "Fusion Decision": a.hybrid_decision,
                 "Explanation": a.explanation
             })
             
@@ -194,6 +248,74 @@ if target_path_input and os.path.exists(target_path_input):
                 })
                 
             st.table(pd.DataFrame(factors_data))
+
+    with tab_overview:
+        model_assessments = [a for a in assessments if a.transformer_available]
+        if model_assessments:
+            st.subheader("Transformer Model Evidence")
+            st.metric("Files with model evidence", len(model_assessments))
+            model_df = pd.DataFrame([
+                {
+                    "File": a.filepath,
+                    "Secret probability": a.transformer_probability,
+                    "Confidence": a.transformer_confidence,
+                    "Fusion decision": a.hybrid_decision,
+                }
+                for a in model_assessments
+            ])
+            st.dataframe(model_df, use_container_width=True)
+
+    with tab_transformer:
+        st.subheader("Transformer Semantic Evidence")
+        model_assessments = [a for a in assessments if a.transformer_available]
+        if not use_transformer:
+            st.info("Enable transformer inference in the sidebar to show model confidence.")
+        elif not model_assessments:
+            st.warning("No transformer predictions were available. Check dependencies and checkpoint path.")
+        else:
+            st.dataframe(pd.DataFrame([
+                {
+                    "File": a.filepath,
+                    "Risk": f"{a.risk_level} ({a.risk_score})",
+                    "Secret probability": a.transformer_probability,
+                    "Confidence": a.transformer_confidence,
+                    "Decision": a.hybrid_decision,
+                    "Rule explanation": a.explanation,
+                }
+                for a in model_assessments
+            ]), use_container_width=True)
+
+    report_payload = {
+        "summary": {
+            level: sum(1 for a in assessments if a.risk_level == level)
+            for level in ("SAFE", "LOW", "MEDIUM", "HIGH", "CRITICAL")
+            if any(a.risk_level == level for a in assessments)
+        },
+        "assessments": [to_json_dict(a) for a in assessments],
+    }
+    html_fd, html_path = tempfile.mkstemp(suffix=".html")
+    os.close(html_fd)
+    html_report_path = Path(html_path)
+    try:
+        generate_html_report(assessments, str(html_report_path))
+        html_report = html_report_path.read_bytes()
+    finally:
+        html_report_path.unlink(missing_ok=True)
+    st.download_button(
+        "Download JSON report",
+        data=json.dumps(report_payload, indent=2),
+        file_name="secret_scan_report.json",
+        mime="application/json",
+    )
+    st.download_button(
+        "Download HTML report",
+        data=html_report,
+        file_name="secret_scan_report.html",
+        mime="text/html",
+    )
             
 else:
-    st.error(f"Target directory or file '{target_path_input}' does not exist. Please specify a valid path in the sidebar.")
+    if scan_mode == "ZIP upload":
+        st.info("Upload a ZIP archive and click Run Security Scan.")
+    else:
+        st.error(f"Target directory or file '{target_path_input}' does not exist. Please specify a valid path in the sidebar.")

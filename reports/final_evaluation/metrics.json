@@ -1,0 +1,52 @@
+{
+  "evaluation_date": "2026-10-03",
+  "production_checkpoint": "reports/transformer_secret_detector.pt",
+  "production_training": {
+    "train_samples": 15000,
+    "validation_samples": 4000,
+    "test_samples": 4000,
+    "epochs": 3,
+    "test": {
+      "accuracy": 0.967,
+      "precision": 0.9647,
+      "recall": 0.9695,
+      "f1": 0.9671,
+      "roc_auc": 0.9943,
+      "true_negatives": 1929,
+      "false_positives": 71,
+      "false_negatives": 61,
+      "true_positives": 1939,
+      "false_positive_rate": 0.0355,
+      "false_negative_rate": 0.0305,
+      "loss": 0.1191
+    }
+  },
+  "custom_benchmark": {
+    "samples": 600,
+    "positive": 270,
+    "negative": 330,
+    "methods": {
+      "regex_only": {"accuracy": 0.7833, "precision": 0.675, "recall": 1.0, "f1": 0.806, "fp": 130, "fn": 0, "latency_ms": 0.035},
+      "regex_entropy": {"accuracy": 0.7833, "precision": 0.675, "recall": 1.0, "f1": 0.806, "fp": 130, "fn": 0, "latency_ms": 0.051},
+      "regex_entropy_iac": {"accuracy": 1.0, "precision": 1.0, "recall": 1.0, "f1": 1.0, "fp": 0, "fn": 0, "latency_ms": 0.062},
+      "context_rules": {"accuracy": 1.0, "precision": 1.0, "recall": 1.0, "f1": 1.0, "fp": 0, "fn": 0, "latency_ms": 3.543},
+      "transformer": {"accuracy": 0.6517, "precision": 0.5648, "recall": 0.9852, "f1": 0.7179, "fp": 205, "fn": 4, "latency_ms": 2.543},
+      "hybrid": {"accuracy": 0.6583, "precision": 0.5684, "recall": 1.0, "f1": 0.7248, "fp": 205, "fn": 0, "latency_ms": 6.35}
+    }
+  },
+  "ablation": {
+    "full_hybrid": {"accuracy": 0.6583, "precision": 0.5684, "recall": 1.0, "f1": 0.7248, "fp": 205, "fn": 0},
+    "without_iac_context": {"accuracy": 0.655, "precision": 0.5666, "recall": 0.9926, "f1": 0.7214, "fp": 205, "fn": 2},
+    "without_cicd_context": {"accuracy": 0.6583, "precision": 0.5684, "recall": 1.0, "f1": 0.7248, "fp": 205, "fn": 0},
+    "without_entropy": {"accuracy": 0.6533, "precision": 0.5657, "recall": 0.9889, "f1": 0.7197, "fp": 205, "fn": 3},
+    "without_transformer": {"accuracy": 1.0, "precision": 1.0, "recall": 1.0, "f1": 1.0, "fp": 0, "fn": 0}
+  },
+  "validation": {
+    "scanner_tests_passed": 13,
+    "zip_security_tests_passed": 3,
+    "sarif_tests_passed": 1,
+    "dashboard_startup": true,
+    "zip_end_to_end": true,
+    "temporary_cleanup": true
+  }
+}

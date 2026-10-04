@@ -15,7 +15,7 @@
 ### Abstract
 Traditional secret detection tools (e.g., standard regex scanners) primarily operate in a binary mode: a secret is either found or not found. They treat a leaked credential in a sample `README.md` the exact same way as a hardcoded root access key embedded inside a production Terraform IAM definition or a GitHub Actions deployment workflow. 
 
-This project introduces **Context-Aware Secret Leakage Detection**, a deterministic, explainable security analysis engine that enriches raw pattern-matching and Shannon entropy with structural context (IaC status, AWS resource categorization, CI/CD execution context, and path semantics) to generate **calibrated, human-explainable risk scores (0–100)** mapped into 5 standardized severity levels: `SAFE`, `LOW`, `MEDIUM`, `HIGH`, and `CRITICAL`.
+This project introduces **Hybrid Transformer-Based Context-Aware Secret Leakage Detection**, combining the deterministic, explainable rules engine with optional CodeBERT semantic evidence. Rules remain the source of the final risk explanation and CI gate; the transformer is an additional signal, not a replacement for regex, entropy, or IaC context.
 
 ---
 
@@ -165,8 +165,10 @@ python -m venv venv
 # On Linux/macOS:
 source venv/bin/activate
 
-# 3. Install dependencies
+# 3. Install dependencies in the project-local environment
 pip install -r requirements.txt
+# Optional ML training/inference dependencies:
+pip install -r requirements-ml.txt
 ```
 
 ---
@@ -183,6 +185,18 @@ python tests/test_all.py
 # Scan the fixtures directory and export JSON & HTML reports
 python scanner/cli.py ./tests/fixtures --json reports/scan_report.json --html reports/scan_report.html
 ```
+
+To enable the optional trained transformer path, provide a checkpoint explicitly:
+
+```bash
+python scanner/cli.py ./tests/fixtures --transformer \
+  --model-path reports/transformer_secret_detector.pt --gpu-id 0 \
+  --fail-on HIGH
+```
+
+Without `--transformer`, scans use the deterministic rules path and do not load
+PyTorch or model weights. When enabled, JSON and HTML reports include model
+secret probability, confidence, and the fusion decision.
 
 #### Example Terminal Output
 ```
@@ -237,6 +251,101 @@ The dashboard provides:
 - Executive Risk Distribution charts
 - Infrastructure-as-Code asset explorer
 - Deep-dive factor breakdown table per file
+- Optional transformer probability and confidence alongside rule explanations
+
+### 4. ML training and experiments
+
+The ML modules support deduplicated Prowl corpus splits, context feature fusion,
+CUDA/FP16 training, checkpointing, early stopping, and reproducible seeds:
+
+```bash
+python ml/train.py --subset 10000 --epochs 3 --gpu_id 0
+python ml/evaluate.py
+```
+
+`ml/evaluate.py` writes measured comparative and ablation results to
+`reports/benchmark_results.json` and `reports/ablation_results.json`. Run these
+only after downloading the corpus and confirming a free GPU; no metric values
+are committed as claims in this repository.
+
+### 5. Real-world operating workflow
+
+Use the deterministic scanner as the mandatory CI gate and enable the trained
+model as additional semantic evidence:
+
+```bash
+source .venv/bin/activate
+python scanner/cli.py /path/to/repository \
+  --transformer \
+  --model-path reports/transformer_secret_detector.pt \
+  --json reports/scan_report.json \
+  --html reports/scan_report.html \
+  --fail-on HIGH
+```
+
+Recommended deployment pattern:
+
+1. Run the scanner locally or as a pre-commit check before code is pushed.
+2. Run the same command in GitHub Actions on every pull request. The existing
+  workflow blocks `HIGH` and `CRITICAL` findings.
+3. Upload the JSON and HTML reports as CI artifacts for security review.
+4. Treat the model probability as supporting evidence; keep the explainable
+  rules, IaC context, and risk factors as the audit decision.
+5. Never print, commit, or upload secret values. Rotate any real credential
+  detected by the scanner and investigate its access logs.
+
+The Streamlit dashboard now supports a local ZIP workflow. Choose **ZIP upload**,
+select a project archive, and click **Run Security Scan**. Archives are limited
+to 100 MB compressed, 500 MB extracted, and 10,000 entries; only supported source
+extensions are extracted, traversal/symlink entries are rejected, and the
+temporary extraction directory is deleted after scanning.
+
+The trained production checkpoint is
+`reports/transformer_secret_detector.pt`. The smaller
+`reports/checkpoints/prowl_10k_smoke.pt` is retained only as a reproducible
+training smoke-test artifact. Evaluation outputs are in `reports/`:
+`benchmark_results.json`, `ablation_results.json`, `scan_report.json`, and
+`scan_report.html`. CI also emits `scan_report.sarif`, which GitHub Code
+Scanning can display inline on pull requests.
+
+### 6. Laptop versus GPU server
+
+Regex, entropy, IaC/CI-CD analysis, ZIP scanning, reports, tests, and the
+Streamlit dashboard run on a normal laptop CPU. The trained 477 MB checkpoint
+can also run on laptop CPU, but Transformer inference is slower. GPU is mainly
+recommended for Prowl training and large benchmark runs.
+
+Keep the Prowl cache and `.venv` on the server. Move only source code, the two
+requirements files, and optionally `reports/transformer_secret_detector.pt` to
+a laptop. Do not move or commit real credentials, raw secret data, or the
+server `.venv` directory.
+
+Laptop CPU setup:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+streamlit run dashboard/app.py
+```
+
+CPU scanner without Transformer:
+
+```bash
+python scanner/cli.py /path/to/project --fail-on HIGH
+```
+
+CPU scanner with the trained model:
+
+```bash
+pip install -r requirements-ml.txt
+CUDA_VISIBLE_DEVICES='' python scanner/cli.py /path/to/project \
+  --transformer --model-path reports/transformer_secret_detector.pt \
+  --fail-on HIGH
+```
+
+There is no need to delete the server copy before trying the laptop. The
+deterministic scanner behaves the same in both environments.
 
 ---
 

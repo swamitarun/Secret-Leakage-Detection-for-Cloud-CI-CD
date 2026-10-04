@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, master ]
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   secret-scan:
     name: Context-Aware IaC & Secret Scan
@@ -28,12 +32,19 @@ jobs:
       - name: Run Automated Test Suite
         run: |
           python tests/test_all.py
+          python tests/test_archive.py
 
       - name: Run Context-Aware Scanner
         id: scan
         run: |
           # Fails if CRITICAL or HIGH secrets are detected in IaC or CI/CD
-          python scanner/cli.py ./ --json reports/scan_report.json --html reports/scan_report.html --fail-on HIGH
+          python scanner/cli.py ./ --json reports/scan_report.json --html reports/scan_report.html --sarif reports/scan_report.sarif --fail-on HIGH
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/scan_report.sarif
 
       - name: Upload Security Scan Artifacts
         if: always()
@@ -43,3 +54,4 @@ jobs:
           path: |
             reports/scan_report.json
             reports/scan_report.html
+            reports/scan_report.sarif
