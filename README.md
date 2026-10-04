@@ -369,6 +369,14 @@ workflow, and grant the workflow `security-events: write` permission. Findings
 then appear under the repository's **Security → Code scanning** tab and inline
 on pull requests.
 
+This GitHub Action does not accept a project ZIP upload. It scans the code
+already checked into the repository on the GitHub runner. For an interactive
+ZIP upload, run the Streamlit dashboard locally with `streamlit run
+dashboard/app.py`, choose **ZIP upload**, select the archive, and click **Run
+Security Scan**. A hosted public dashboard should only be used after adding
+authentication, size/rate limits, private temporary storage, and an explicit
+privacy policy.
+
 The CLI also supports repeatable exclusions for local use:
 
 ```bash
