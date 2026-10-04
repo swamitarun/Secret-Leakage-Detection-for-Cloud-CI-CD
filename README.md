@@ -351,12 +351,29 @@ deterministic scanner behaves the same in both environments.
 
 ## 8. CI/CD Integration (GitHub Actions)
 
-The repository includes a production-ready workflow in [`.github/workflows/security-scan.yml`](file:///c:/Study/404/my/.github/workflows/security-scan.yml).
-When triggered on `push` or `pull_request`:
-1. Executes `tests/test_all.py`.
-2. Runs `scanner/cli.py` with `--fail-on HIGH`.
-3. If any `HIGH` or `CRITICAL` findings exist, the pipeline **fails the build** and blocks pull request merging.
-4. Generates and uploads `reports/scan_report.html` and `reports/scan_report.json` as build artifacts.
+The repository includes a ready-to-use workflow in
+`.github/workflows/security-scan.yml`. Copy that file into a repository to scan
+it locally on the GitHub runner; source code is not uploaded to an external
+scanner service.
+
+When triggered on `push` or `pull_request`, it:
+1. Installs the scanner and runs the complete `pytest` suite.
+2. Scans the repository with the deterministic rules and context engine.
+3. Excludes test fixtures, benchmark data, and generated reports because they
+  intentionally contain examples used to test detection.
+4. Fails the build for `HIGH` or `CRITICAL` findings.
+5. Uploads SARIF to GitHub Code Scanning and JSON/HTML reports as artifacts.
+
+For a new repository, enable **Settings → Actions → General**, commit the
+workflow, and grant the workflow `security-events: write` permission. Findings
+then appear under the repository's **Security → Code scanning** tab and inline
+on pull requests.
+
+The CLI also supports repeatable exclusions for local use:
+
+```bash
+python scanner/cli.py . --exclude tests --exclude dataset --exclude reports --fail-on HIGH
+```
 
 ---
 

@@ -31,14 +31,20 @@ jobs:
 
       - name: Run Automated Test Suite
         run: |
-          python tests/test_all.py
-          python tests/test_archive.py
+          python -m pytest -q
 
       - name: Run Context-Aware Scanner
         id: scan
         run: |
-          # Fails if CRITICAL or HIGH secrets are detected in IaC or CI/CD
-          python scanner/cli.py ./ --json reports/scan_report.json --html reports/scan_report.html --sarif reports/scan_report.sarif --fail-on HIGH
+          # Scan product code; tests, datasets, and generated reports contain intentional examples.
+          python scanner/cli.py ./ \
+            --exclude tests \
+            --exclude dataset \
+            --exclude reports \
+            --json reports/scan_report.json \
+            --html reports/scan_report.html \
+            --sarif reports/scan_report.sarif \
+            --fail-on HIGH
 
       - name: Upload SARIF to GitHub Code Scanning
         if: always()

@@ -34,16 +34,17 @@ IGNORE_DIRS = {
 }
 
 
-def discover_files(target_path: str) -> list[str]:
+def discover_files(target_path: str, exclude_dirs: set[str] | None = None) -> list[str]:
     """Recursively discover supported files in target_path."""
     path = Path(target_path)
     if path.is_file():
         return [str(path)]
     
+    excluded = IGNORE_DIRS | (exclude_dirs or set())
     discovered = []
     for root, dirs, files in os.walk(path):
         # Prune ignored directories
-        dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
+        dirs[:] = [d for d in dirs if d not in excluded]
         
         for file in files:
             ext = os.path.splitext(file)[1].lower()
@@ -56,9 +57,9 @@ def discover_files(target_path: str) -> list[str]:
 
 
 def scan_directory(target_path: str, transformer: bool = False, model_path: str | None = None,
-                   gpu_id: int | None = None) -> list[RiskAssessment]:
+                   gpu_id: int | None = None, exclude_dirs: set[str] | None = None) -> list[RiskAssessment]:
     """Scan all files in target_path and produce risk assessments."""
-    files = discover_files(target_path)
+    files = discover_files(target_path, exclude_dirs)
     assessments = []
     for f in files:
         try:
@@ -380,6 +381,8 @@ def main():
                         help="Fuse an available trained transformer checkpoint with deterministic rules")
     parser.add_argument("--model-path", help="Transformer checkpoint path (used with --transformer)")
     parser.add_argument("--gpu-id", type=int, help="CUDA device index for transformer inference")
+    parser.add_argument("--exclude", dest="exclude_dirs", action="append", default=[],
+                        help="Directory name to skip; may be repeated")
     
     args = parser.parse_args()
     
@@ -388,7 +391,9 @@ def main():
         print(f"Error: Path '{target}' does not exist.", file=sys.stderr)
         sys.exit(2)
         
-    assessments = scan_directory(target, args.transformer, args.model_path, args.gpu_id)
+    assessments = scan_directory(
+        target, args.transformer, args.model_path, args.gpu_id, set(args.exclude_dirs)
+    )
     print_cli_summary(target, assessments)
     
     # Export reports
