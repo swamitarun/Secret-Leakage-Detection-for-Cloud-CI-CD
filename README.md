@@ -369,6 +369,35 @@ workflow, and grant the workflow `security-events: write` permission. Findings
 then appear under the repository's **Security → Code scanning** tab and inline
 on pull requests.
 
+### How another repository uses this scanner
+
+A friend does not need to copy the scanner source code. In the friend's
+repository, create `.github/workflows/secret-scan.yml` with:
+
+```yaml
+name: Secret scan
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  scan:
+    uses: swamitarun/Secret-Leakage-Detection-for-Cloud-CI-CD/.github/workflows/security-scan.yml@master
+    secrets: inherit
+```
+
+Then enable **Settings → Actions → General → Workflow permissions** and allow
+the workflow to read repository contents and write security events. Every push
+or pull request scans the friend's repository on a GitHub-hosted runner. No ZIP
+upload or external API is required. Results appear in **Security → Code
+scanning alerts**, while JSON/HTML/SARIF files appear under the workflow run's
+**Artifacts** tab.
+
 This GitHub Action does not accept a project ZIP upload. It scans the code
 already checked into the repository on the GitHub runner. For an interactive
 ZIP upload, run the Streamlit dashboard locally with `streamlit run
