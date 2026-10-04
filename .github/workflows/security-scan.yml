@@ -1,6 +1,7 @@
 name: Context-Aware Secret Leakage Security Scan
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, master, develop ]
   pull_request:
